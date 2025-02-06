@@ -1,4 +1,4 @@
-# RSNA 2024 Lumbar Spine Degenerative Classification - 3rd Place Solution
+# CZII - CryoET Object Identification - 2nd Place Solution
 
 This is the 2nd place solution for the CZII - CryoET Object Identification competition. For more details, please refer to the [discussion](https://www.kaggle.com/competitions/czii-cryo-et-object-identification/discussion/561568).
 
