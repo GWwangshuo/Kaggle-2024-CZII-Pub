@@ -1,5 +1,3 @@
-"""Module with DenseVNet"""
-import numpy as np
 import torch
 import torch.nn as nn
 from monai.networks.blocks import ADN
@@ -9,15 +7,10 @@ class DenseVNet(nn.Module):
     def __init__(self, in_channels: int = 1, out_channels: int = 7):
         super().__init__()
 
-        self.model_name = "DenseVNet"
         self.classes = out_channels
         kernel_size = [5, 3, 3]
-        strides = [2, 2, 1]
-        dfs_kernel_size = [3, 3, 3]
-        skip_kernel_size = [3, 3, 3]
         num_downsample_channels = [24, 24, 24]
-        num_skip_channels = [48, 64, 80]
-
+        num_skip_channels = [12, 24, 24]
         units = [5, 10, 10]
         growth_rate = [4, 8, 16]
 
@@ -29,9 +22,6 @@ class DenseVNet(nn.Module):
                     downsample_channels=num_downsample_channels[i],
                     skip_channels=num_skip_channels[i],
                     kernel_size=kernel_size[i],
-                    stride=strides[i],
-                    dfs_kernel_size=dfs_kernel_size[i],
-                    skip_kernel_size=skip_kernel_size[i],
                     units=units[i],
                     growth_rate=growth_rate[i],
                 )
@@ -39,7 +29,7 @@ class DenseVNet(nn.Module):
             in_channels = num_downsample_channels[i] + units[i] * growth_rate[i]
 
         self.upsample_1 = torch.nn.Upsample(scale_factor=2, mode='trilinear')
-        self.upsample_2 = torch.nn.Upsample(scale_factor=2, mode='trilinear')
+        self.upsample_2 = torch.nn.Upsample(scale_factor=4, mode='trilinear')
 
         self.out_conv = ConvBlock(
             in_channels=sum(num_skip_channels),
@@ -92,7 +82,6 @@ class ConvBlock(torch.nn.Module):
 
         if preactivation:
             layers = [
-                # torch.nn.ReLU(),
                 pad,
                 torch.nn.Conv3d(
                     in_channels=in_channels,
@@ -102,7 +91,6 @@ class ConvBlock(torch.nn.Module):
                 ),
             ]
             if batch_norm:
-                # layers = [torch.nn.BatchNorm3d(in_channels)] + layers
                 layers = [ADN(
                     ordering="NDA",
                     in_channels=in_channels,
@@ -181,9 +169,6 @@ class DownsampleWithDfs(torch.nn.Module):
         downsample_channels,
         skip_channels,
         kernel_size,
-        stride,
-        dfs_kernel_size,
-        skip_kernel_size,
         units,
         growth_rate,
     ):
@@ -193,17 +178,17 @@ class DownsampleWithDfs(torch.nn.Module):
             in_channels=in_channels,
             out_channels=downsample_channels,
             kernel_size=kernel_size,
-            stride=stride,
+            stride=2,
             batch_norm=True,
             preactivation=True,
         )
         self.dfs = DenseFeatureStack(
-            downsample_channels, units, growth_rate, dfs_kernel_size, batch_norm=True
+            downsample_channels, units, growth_rate, 3, batch_norm=True
         )
         self.skip = ConvBlock(
             in_channels=downsample_channels + units * growth_rate,
             out_channels=skip_channels,
-            kernel_size=skip_kernel_size,
+            kernel_size=3,
             batch_norm=True,
             preactivation=True,
         )
@@ -215,21 +200,3 @@ class DownsampleWithDfs(torch.nn.Module):
         x_skip = self.skip(x)
 
         return x, x_skip
-
-
-
-
-def main():
-    input_value = np.random.randn(1, 1, 144, 144, 144)
-    input_value = torch.from_numpy(input_value).float().cuda()
-    print(input_value.dtype)
-
-    model = DenseVNet(1).cuda()
-    model.train()
-
-    out = model(input_value)
-    print(out.shape)
-
-
-if __name__ == '__main__':
-    main()
