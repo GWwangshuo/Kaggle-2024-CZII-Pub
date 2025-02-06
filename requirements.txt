@@ -1,0 +1,28 @@
+connected-components-3d==3.20.0
+copick==0.7.0
+einops==0.7.0
+loguru==0.7.2
+monai==1.4.0
+monai-weekly==1.5.dev2447
+opencv-python==4.8.1.78
+opencv-python-headless==4.10.0.84
+pandas==2.2.0
+pytorch-lightning==2.5.0.post0
+PyYAML==6.0.2
+rich==13.9.4
+scikit-image==0.24.0
+scikit-learn==1.5.2
+scipy==1.12.0
+tensorboard==2.18.0
+tensorboard-data-server==0.7.2
+tensorboardX==2.6.2.2
+timm==0.9.7
+torch @ https://download.pytorch.org/whl/cu118/torch-2.1.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=60396358193f238888540f4a38d78485f161e28ec17fa445f0373b5350ef21f0
+torchinfo==1.8.0
+torchmetrics==1.6.1
+torchvision @ https://download.pytorch.org/whl/cu118/torchvision-0.16.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=18470aef0bbde73f5a6a96135cd457f4d8be31f60be7ceae4ef5174f02f73add
+tqdm==4.66.1
+transformers==4.35.2
+yacs==0.1.8
+kaggle==1.6.17
+copick-utils @ https://github.com/copick/copick-utils

@@ -1,0 +1,46 @@
+seed: 2024
+trainer:
+  devices: [0]
+  strategy: ddp
+  max_epochs: 200
+  precision: 16-mixed
+  accelerator: gpu
+  num_nodes: 1
+  log_every_n_steps: 1
+  num_sanity_val_steps: 0
+  enable_progress_bar: True
+dataset:
+  train_batch_size: 1
+  val_batch_size: 2
+  num_random_samples_per_batch: 2
+  spatial_size: [128, 256, 256]
+  overlap_size: [32, 32, 32]
+model:
+  model_name: voxresnet
+  in_channels: 1
+  out_channels: 7
+loss:
+  alpha: 0.3
+  beta: 0.7
+  tversky_coef: 1.0
+  ce_coef: 1.0
+  weight: [1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 1.0]
+  ignore_index: 2
+optimizer:
+  name: AdamW
+  lr: 0.001
+  weight_decay: 0.01
+  betas:
+    - 0.9
+    - 0.999
+metric:
+  valid_id: TS_6_4
+  category: [
+    "apo-ferritin",
+    "beta-amylase",
+    "beta-galactosidase",
+    "ribosome",
+    "thyroglobulin",
+    "virus-like-particle",
+  ]
+  threshold: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15]

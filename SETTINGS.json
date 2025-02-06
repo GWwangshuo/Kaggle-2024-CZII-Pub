@@ -1,0 +1,6 @@
+{
+    "RAW_DATA_DIR": "./input/",
+    "TRAIN_DATA_WORKING_DIR": "./input/working/",
+    "MODEL_CHECKPOINT_DIR": "./output/",
+    "SUBMISSION_DIR": "./submissions/"
+}
