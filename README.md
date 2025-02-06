@@ -2,6 +2,8 @@
 
 This is the 2nd place solution for the CZII - CryoET Object Identification competition. For more details, please refer to the [discussion](https://www.kaggle.com/competitions/czii-cryo-et-object-identification/discussion/561568).
 
+Some parts of this repository's code are derived from [source](https://github.com/Moyasii/Kaggle-2024-RSNA-Pub). 
+
 ## Environment
 
 This project was developed in the following environment:
