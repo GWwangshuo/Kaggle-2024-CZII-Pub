@@ -22,7 +22,6 @@ configs=(
     "monai_unet_v4.yaml"
     "voxhrnet.yaml"
     "voxresnet.yaml"
-    "unet2e3d.yaml"
 )
 
 valid_ids=(
