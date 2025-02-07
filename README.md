@@ -59,7 +59,7 @@ This project is set up to run inside a Docker container.
 To run the entire workflow, including data preparation, model training, and prediction, use the following script:
 
 ```bash
-scripts/run.sh
+bash scripts/run.sh
 ```
 
 This script sequentially performs all necessary steps to complete the workflow.

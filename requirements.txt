@@ -1,5 +1,6 @@
+copick==0.8.1
+git+https://github.com/copick/copick-utils.git
 connected-components-3d==3.20.0
-copick==0.7.0
 einops==0.7.0
 loguru==0.7.2
 monai==1.4.0
@@ -14,7 +15,6 @@ scikit-image==0.24.0
 scikit-learn==1.5.2
 scipy==1.12.0
 tensorboard==2.18.0
-tensorboard-data-server==0.7.2
 tensorboardX==2.6.2.2
 timm==0.9.7
 torch @ https://download.pytorch.org/whl/cu118/torch-2.1.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=60396358193f238888540f4a38d78485f161e28ec17fa445f0373b5350ef21f0
@@ -25,4 +25,3 @@ tqdm==4.66.1
 transformers==4.35.2
 yacs==0.1.8
 kaggle==1.6.17
-copick-utils @ https://github.com/copick/copick-utils.git
