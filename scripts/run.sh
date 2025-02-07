@@ -7,7 +7,7 @@ set -e
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 echo "@        Download and Preprocess the Data          @"
 echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-# python3 src/utils/prepare_data.py
+python3 src/utils/prepare_data.py
 python3 src/utils/generate_segmentation_mask.py
 
 
