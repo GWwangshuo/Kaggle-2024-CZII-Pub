@@ -25,4 +25,4 @@ tqdm==4.66.1
 transformers==4.35.2
 yacs==0.1.8
 kaggle==1.6.17
-copick-utils @ https://github.com/copick/copick-utils
+copick-utils @ https://github.com/copick/copick-utils.git
