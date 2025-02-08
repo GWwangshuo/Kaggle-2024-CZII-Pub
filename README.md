@@ -94,6 +94,11 @@ Train particle segmentation models using different configurations:
   ```
   *(Repeat for additional tomograms as needed, and refer to respective configuration files for tuning.)*
 
+
+#### 4. Model Inference
+1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/lions-czii2024-best-ckpts).
+2. Replace the absolute checkpoint path in `best_model_ckpts` and execute the `submit.ipynb` notebook.
+
 ## License
 
 This project is licensed under the MIT License.
