@@ -8,31 +8,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 from yacs.config import CfgNode as CN
 
-model_config = {
-    "MODEL": {
-        "NAME": "voxhrnet",
-        "EXTRA": {
-            "STAGE2": {
-                "NUM_MODULES": 1,
-                "NUM_BRANCHES": 2,
-                "BLOCK": "BASIC",
-                "NUM_BLOCKS": [3, 3],
-                "NUM_CHANNELS": [16, 32],
-            },
-            "STAGE3": {
-                "NUM_MODULES": 1,
-                "NUM_BRANCHES": 3,
-                "BLOCK": "BASIC",
-                "NUM_BLOCKS": [3, 3, 3],
-                "NUM_CHANNELS": [16, 32, 64],
-            },
-        },
-    }
-}
 
 def convert_to_cfg_node(dictionary):
     return CN(dictionary)
 
+def create_dropout_layer(p):
+    return nn.Dropout(p=p)
+
+def _replace_bn_relu(model):
+    for name, module in model.named_children():
+        # Replace BatchNorm3d with InstanceNorm3d
+        if isinstance(module, nn.BatchNorm3d):
+            setattr(model, name, nn.InstanceNorm3d(module.num_features, affine=True))
+        # Replace ReLU with PReLU
+        elif isinstance(module, nn.ReLU):
+            setattr(model, name, nn.PReLU())
+        else:
+            # Recursively replace for submodules
+            _replace_bn_relu(module)
 
 class BasicBlock(nn.Module):
 
@@ -117,11 +110,10 @@ class HighResolutionModule(nn.Module):
         num_inchannels,
         num_channels,
         multi_scale_output=True,
-        dropout=0.0,
+        dropout=0.0
     ):
 
         super(HighResolutionModule, self).__init__()
-        
         self.num_branches = num_branches
         self.num_inchannels = num_inchannels
         self.dropout = dropout
@@ -132,6 +124,7 @@ class HighResolutionModule(nn.Module):
         )
         self.fuse_layers = self._make_fuse_layer()
         self.relu = nn.ReLU()
+        
 
     def _make_one_branch(self, block, num_block, num_inchannel, num_channel):
 
@@ -252,10 +245,9 @@ def create_dropout_layer(p):
 
 class HighResolutionNet(nn.Module):
 
-    def __init__(self, in_channels=1, out_channels=7, dropout=0.0):
+    def __init__(self, config, in_channels=1, out_channels=7, dropout=0.0):
 
         super(HighResolutionNet, self).__init__()
-        config = convert_to_cfg_node(model_config)
         self.dropout = dropout
         self.num_classes = out_channels
         self.extra = config.MODEL.EXTRA
@@ -326,10 +318,7 @@ class HighResolutionNet(nn.Module):
             )
         layers = [block(in_planes, planes, downsample, dropout=self.dropout)]
         layers.extend(
-            [
-                block(planes * block.expansion, planes, dropout=self.dropout)
-                for i in range(num_block - 1)
-            ]
+            [block(planes * block.expansion, planes, dropout=self.dropout) for i in range(num_block - 1)]
         )
 
         return nn.Sequential(*layers)
@@ -396,7 +385,7 @@ class HighResolutionNet(nn.Module):
                     num_inchannels,
                     num_channels,
                     multi_scale_output or i != num_modules - 1,
-                    self.dropout,
+                    self.dropout
                 )
             )
             num_inchannels = modules[-1].get_num_outchannels()
@@ -464,3 +453,47 @@ class HighResolutionNet(nn.Module):
         paras = [w.clone().detach() for w in self.parameters()]
 
         return paras
+    
+    
+class VoxHRNet(nn.Module):
+    def __init__(self, in_channels=1, out_channels=7, dropout=0.0):
+        super(VoxHRNet, self).__init__()
+        
+        model_config = {
+            "MODEL": {
+                "NAME": "voxhrnet",
+                "EXTRA": {
+                    "STAGE2": {
+                        "NUM_MODULES": 1,
+                        "NUM_BRANCHES": 2,
+                        "BLOCK": "BASIC",
+                        "NUM_BLOCKS": [3, 3],
+                        "NUM_CHANNELS": [16, 32],
+                    },
+                    "STAGE3": {
+                        "NUM_MODULES": 1,
+                        "NUM_BRANCHES": 3,
+                        "BLOCK": "BASIC",
+                        "NUM_BLOCKS": [3, 3, 3],
+                        "NUM_CHANNELS": [16, 32, 64],
+                    },
+                },
+            }
+        }
+
+
+        model_config = convert_to_cfg_node(model_config)
+
+        self.model = HighResolutionNet(
+            model_config, 
+            in_channels=in_channels, 
+            out_channels=out_channels, 
+            dropout=dropout)
+        
+        _replace_bn_relu(self.model)
+
+    def forward(self, image):
+      
+        logit = self.model(image)
+        
+        return logit

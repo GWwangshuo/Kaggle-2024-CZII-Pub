@@ -2,7 +2,7 @@ from monai.networks.nets import DynUNet, SegResNet, UNet
 
 from .densevnet import DenseVNet
 from .unet2e3d import UNet2E3D
-from .voxhrnet import HighResolutionNet as VoxHRNet
+from .voxhrnet import VoxHRNet
 from .voxresnet import VoxResNet
 
 class_mapping = {
