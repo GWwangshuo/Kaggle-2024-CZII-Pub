@@ -72,26 +72,35 @@ python3 src/utils/generate_segmentation_mask.py
 #### 3. Model Training
 Train particle segmentation models using different configurations:
 
-- **MONAI U-Net (1 residual unit, validation per tomogram, spatial size: 128x256x256)**
+- **MONAI U-Net (1 residual unit, validation per tomogram, spatial size: 128x256x256, 7 classes)**
   ```bash
   python src/train.py --config src/config/monai_unet_v1.yaml --valid_id TS_6_4
   python src/train.py --config src/config/monai_unet_v1.yaml --valid_id TS_5_4
   ```
   *(Repeat for additional tomograms as needed)*
 
-- **MONAI U-Net (2 residual units, dropout 0.3, validation per tomogram, spatial size: 128x256x256)**
+- **MONAI U-Net (2 residual units, dropout 0.3, validation per tomogram, spatial size: 128x256x256, 7 classes)**
   ```bash
   python src/train.py --config src/config/monai_unet_v2.yaml --valid_id TS_6_4
   python src/train.py --config src/config/monai_unet_v2.yaml --valid_id TS_5_4
   ```
   *(Repeat for additional tomograms as needed)*
 
-- **Additional Models (DenseVNet, VoxHRNet, VoxResNet)**
+- **MONAI U-Net (1 residual unit, validation per tomogram, spatial size: 128x256x256, 6 classes)**
+  ```bash
+  python src/train.py --config src/config/monai_unet_v3.yaml --valid_id TS_6_4
+  python src/train.py --config src/config/monai_unet_v3.yaml --valid_id TS_5_4
+  ```
+  *(Repeat for additional tomograms as needed)*
+
+- **Additional Models (DenseVNet, VoxHRNet, VoxResNet, SegResNet, UNet2E3D)**
   ```bash
   python src/train.py --config src/config/densevnet.yaml --valid_id TS_6_4
   python src/train.py --config src/config/voxhrnet.yaml --valid_id TS_6_4
   python src/train.py --config src/config/voxresnet.yaml --valid_id TS_6_4
-  ```
+  python src/train.py --config src/config/segresnet.yaml --valid_id TS_6_4
+  python src/train.py --config src/config/unet2e3d.yaml --valid_id TS_6_4
+   ```
   *(Repeat for additional tomograms as needed, and refer to respective configuration files for tuning.)*
 
 
@@ -118,5 +127,5 @@ Train particle segmentation models using different configurations:
 
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the MIT License, see the [LICENSE.txt](./LICENSE.txt) file for details.
 
