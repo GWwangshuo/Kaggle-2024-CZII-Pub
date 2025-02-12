@@ -106,7 +106,8 @@ Train particle segmentation models using different configurations:
 
 #### 4. Model Prediction
 1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/czii2024-best-ckpts).
-2. Replace the absolute checkpoint path in `best_weights_root` and execute the `submit.ipynb` notebook.
+2. Update the dataset path `DATA_KAGGLE_DIR` and the absolute checkpoint path `best_weights_root` in the `submit.ipynb` notebook.
+3. Excute the `submit.ipynb` notebook.
 
 ##### Model Performance with 7 TTA Summary
 
