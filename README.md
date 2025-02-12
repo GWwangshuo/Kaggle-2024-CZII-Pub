@@ -72,21 +72,21 @@ python3 src/utils/generate_segmentation_mask.py
 #### 3. Model Training
 Train particle segmentation models using different configurations:
 
-- **MONAI U-Net (1 residual unit, validation per tomogram, spatial size: 128x256x256, 7 classes)**
+- **MONAI U-Net (1 residual unit, spatial size: 128x256x256, 7 classes)**
   ```bash
   python src/train.py --config src/config/monai_unet_v1.yaml --valid_id TS_6_4
   python src/train.py --config src/config/monai_unet_v1.yaml --valid_id TS_5_4
   ```
   *(Repeat for additional tomograms as needed)*
 
-- **MONAI U-Net (2 residual units, dropout 0.3, validation per tomogram, spatial size: 128x256x256, 7 classes)**
+- **MONAI U-Net (2 residual units, dropout 0.3, spatial size: 128x256x256, 7 classes)**
   ```bash
   python src/train.py --config src/config/monai_unet_v2.yaml --valid_id TS_6_4
   python src/train.py --config src/config/monai_unet_v2.yaml --valid_id TS_5_4
   ```
   *(Repeat for additional tomograms as needed)*
 
-- **MONAI U-Net (1 residual unit, validation per tomogram, spatial size: 128x256x256, 6 classes)**
+- **MONAI U-Net (1 residual unit, spatial size: 128x256x256, 6 classes)**
   ```bash
   python src/train.py --config src/config/monai_unet_v3.yaml --valid_id TS_6_4
   python src/train.py --config src/config/monai_unet_v3.yaml --valid_id TS_5_4
