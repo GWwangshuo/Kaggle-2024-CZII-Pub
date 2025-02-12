@@ -19,10 +19,11 @@ configs=(
     "monai_unet_v1.yaml"
     "monai_unet_v2.yaml"
     "monai_unet_v3.yaml"
-    "monai_unet_v4.yaml"
     "densevnet.yaml"
     "voxhrnet.yaml"
     "voxresnet.yaml"
+    "segresnet.yaml"
+    "unet2e3d.yaml"
 )
 
 valid_ids=(
