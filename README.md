@@ -105,7 +105,7 @@ Train particle segmentation models using different configurations:
 
 
 #### 4. Model Prediction
-1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/czii2024-best-ckpts).
+1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/czii2024-best-ckpts). If you have trained the model yourself, replace the existing weights with your custom-trained ones.
 2. Update the dataset path `DATA_KAGGLE_DIR` and the absolute checkpoint path `best_weights_root` in the `submit.ipynb` notebook.
 3. Excute the `submit.ipynb` notebook.
 
