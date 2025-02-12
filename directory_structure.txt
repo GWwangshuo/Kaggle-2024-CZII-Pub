@@ -1,0 +1,43 @@
+.
+├── Dockerfile
+├── entry_points.md
+├── LICENSE.txt
+├── README.md
+├── requirements.txt
+├── scripts
+│   └── run.sh
+├── SETTINGS.json
+└── src
+    ├── config
+    │   ├── densevnet.yaml
+    │   ├── monai_unet_v1.yaml
+    │   ├── monai_unet_v2.yaml
+    │   ├── monai_unet_v3.yaml
+    │   ├── segresnet.yaml
+    │   ├── unet2e3d.yaml
+    │   ├── voxhrnet.yaml
+    │   └── voxresnet.yaml
+    ├── losses
+    │   └── custom_loss.py
+    ├── metrics
+    │   ├── czii2024_fbeta_metrics.py
+    │   └── heng_utils.py
+    ├── models
+    │   ├── densevnet.py
+    │   ├── __init__.py
+    │   ├── modules
+    │   │   └── decoder.py
+    │   ├── unet2e3d.py
+    │   ├── voxhrnet.py
+    │   └── voxresnet.py
+    ├── submit.ipynb
+    ├── train.py
+    └── utils
+        ├── config.py
+        ├── generate_segmentation_mask.py
+        ├── __init__.py
+        ├── prepare_data.py
+        ├── settings.py
+        └── slicing.py
+
+9 directories, 32 files

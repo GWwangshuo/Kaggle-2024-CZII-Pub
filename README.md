@@ -62,7 +62,7 @@ For a more granular approach, execute each step as follows:
 export PYTHONPATH=./
 ```
 
-#### 2. Data Preparation
+#### 2. Data Preparation and Label Generation
 Ensure the raw dataset is stored in `<RAW_DATA_DIR>`, then run:
 ```bash
 python3 src/utils/prepare_data.py
@@ -95,11 +95,28 @@ Train particle segmentation models using different configurations:
   *(Repeat for additional tomograms as needed, and refer to respective configuration files for tuning.)*
 
 
-#### 4. Model Inference
-1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/lions-czii2024-best-ckpts).
-2. Replace the absolute checkpoint path in `best_model_ckpts` and execute the `submit.ipynb` notebook.
+#### 4. Model Prediction
+1. Download the pretrained checkpoints from [this link](https://www.kaggle.com/datasets/sjtuwangshuo/czii2024-best-ckpts).
+2. Replace the absolute checkpoint path in `best_weights_root` and execute the `submit.ipynb` notebook.
+
+##### Model Performance with 7 TTA Summary
+
+| **No** | **Model**                                                |  **Developer**  | **Architecture** | **Parameters** |    **Valid ID**   | **Normalization** | **Activation** | **Public LB** | **Private LB** |
+| ------ | -------------------------------------------------------- | ----------------| ---------------- | -------------- | ----------------- | ----------------- | -------------- | ------------- | -------------- |
+| 1      | epoch122-step2952-valid_loss0.3625-val_metric0.8367.ckpt | Lion            | UNet3D           | 1.1M           | TS_86_3           | InstanceNorm3d    | PReLU          | 0.77379       | 0.76582        |
+| 2      | epoch148-step3576-valid_loss1.1154-val_metric0.7722.ckpt | Lion            | UNet3D           | 1.1M           | TS_6_4            | InstanceNorm3d    | PReLU          | 0.77021       | 0.76725        |
+| 3      | epoch153-step3696-valid_loss0.3021-val_metric0.8900.ckpt | Lion            | UNet3D           | 1.6M           | TS_69_2           | InstanceNorm3d    | PReLU          | 0.77205       | 0.76676        |
+| 4      | epoch194-step4680-valid_loss1.0213-val_metric0.8788.ckpt | Lion            | UNet3D           | 1.1M           | TS_69_2           | InstanceNorm3d    | PReLU          | 0.77390       | 0.76737        |
+| 5      | epoch138-step3336-valid_loss0.3690-val_metric0.8476.ckpt | Lion            | UNet3D           | 1.1M           | TS_73_6           | InstanceNorm3d    | PReLU          | 0.76543       | 0.76025        |
+| 6      | epoch152-step3672-valid_loss0.4333-val_metric0.7929.ckpt | Lion            | DenseVNet        | 873K           | TS_6_6            | InstanceNorm3d    | PReLU          | 0.76528       | 0.75417        |
+| 7      | epoch195-step4704-valid_loss0.4258-val_metric0.7914.ckpt | Lion            | VoxResNet        | 7.0M           | TS_6_6            | InstanceNorm3d    | PReLU          | 0.77457       | 0.76593        |
+| 8      | epoch188-step4536-valid_loss0.4231-val_metric0.8659.ckpt | Lion            | VoxHRNet         | 1.4M           | TS_73_6           | InstanceNorm3d    | PReLU          | 0.76738       | 0.75995        |
+| 9      | epoch198-step4776-valid_loss0.3471-val_metric0.8730.ckpt | Lion            | VoxHRNet         | 1.4M           | TS_73_6           | InstanceNorm3d    | PReLU          | 0.76135       | 0.75848        |
+| 10     | epoch133-val_loss0.52-val_metric0.56-step3216.ckpt       | Luoziqian       | UNet3D           | 1.1M           | TS_6_4            | BatchNorm3d       | PReLU          | 0.76844       | 0.76320        |
+| 11     | epoch314-val_loss0.54-val_metric0.54-step7560.ckpt       | Luoziqian       | SegResNet        | 1.2M           | TS_6_4            | GroupNorm         | ReLU           | 0.75521       | 0.74647        |
+| 12     | epoch114-val_loss0.55-val_metric0.53-Step2760.ckpt       | Luoziqian       | UNet2E3D         | 14.2M          | TS_6_4            | BatchNorm3d       | ReLU           | 0.73758       | 0.72966        |
+
 
 ## License
-
 This project is licensed under the MIT License.
 

@@ -93,9 +93,7 @@ class MyDecoderBlock3d(nn.Module):
         self.attention2 = nn.Identity()
 
     def forward(self, x, skip=None, depth_scaling=2):
-        # x = F.interpolate(x, scale_factor=(depth_scaling,2,2), mode='nearest')
-        x = F.interpolate(x, scale_factor=(depth_scaling, 2, 2), mode='trilinear', align_corners=False)
-
+        x = F.interpolate(x, scale_factor=(depth_scaling,2,2), mode='nearest')
         if skip is not None:
             x = torch.cat([x, skip], dim=1)
             x = self.attention1(x)

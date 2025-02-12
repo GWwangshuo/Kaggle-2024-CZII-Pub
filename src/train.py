@@ -7,6 +7,7 @@ from typing import Optional
 import copick
 import pytorch_lightning as pl
 import torch
+import torch.nn.functional as F
 import yaml
 from monai.data import CacheDataset, DataLoader, Dataset, decollate_batch
 from monai.transforms import (
@@ -44,26 +45,21 @@ settings = load_settings()
 class Model(pl.LightningModule):
     def __init__(
         self,
-        config: dict
+        config: dict,
         # [1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 1.0]
     ):
 
         super().__init__()
-        self.lr = config['optimizer']['lr']
+        self.lr = config["optimizer"]["lr"]
         self.save_hyperparameters()
         self.config = config
 
-        self.model = create_model(
-            **config['model']
-        )
-        
-        self.loss_fn = CustomLoss(
-            **config['loss']
-        )
+        self.model = create_model(**config["model"])
+
+        self.loss_fn = CustomLoss(**config["loss"])
 
         self.metric_fn = CZII2024Metrics(
-            raw_data_dir=settings.raw_data_dir, 
-            **config['metric']
+            raw_data_dir=settings.raw_data_dir, **config["metric"]
         )
 
         self.train_loss = 0
@@ -74,15 +70,35 @@ class Model(pl.LightningModule):
         self.num_train_batch = 0
         self.num_val_batch = 0
         self.pred_masks = []
+        self.out_channels = self.model.out_channels
 
     def forward(self, x):
         return self.model(x)
 
+    def convert_labels(self, labels):
+
+        num_classes = self.trainer.datamodule.nclasses
+
+        labels_one_hot = F.one_hot(
+            labels.squeeze(1).long(), num_classes=num_classes
+        ).permute(0, 4, 1, 2, 3)
+
+        # remove classes 2
+        slices = [0, 1, 3, 4, 5, 6]
+        labels_one_hot_sliced = labels_one_hot[:, slices]
+        labels = labels_one_hot_sliced.argmax(1).unsqueeze(1).float()
+
+        return labels
+
     def training_step(self, batch, batch_idx):
         x, y = batch["image"], batch["label"]
-        
+
+        num_classes = self.trainer.datamodule.nclasses
+        if self.out_channels != num_classes:
+            y = self.convert_labels(y)
+
         y_hat = self(x)
- 
+
         loss = self.loss_fn(y_hat, y)["loss"]
 
         self.train_loss += loss
@@ -100,17 +116,37 @@ class Model(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         with torch.no_grad():  # This ensures that gradients are not stored in memory
             x, y = batch["image"], batch["label"]
+
+            num_classes = self.trainer.datamodule.nclasses
+            if self.out_channels != num_classes:
+                y = self.convert_labels(y)
+
             y_hat = self(x)
 
+            loss_dict = self.loss_fn(y_hat, y)
+            loss = loss_dict["loss"]
+
             metric_val_outputs = [
-                AsDiscrete(argmax=True, to_onehot=self.config['model']['out_channels'])(i)
+                AsDiscrete(argmax=True, to_onehot=self.out_channels)(i)
                 for i in decollate_batch(y_hat)
             ]
 
+            # construct outputs with the same shape with inputs for calculating f-beta score
+            if self.out_channels != num_classes:
+
+                insert_tensor = torch.zeros(
+                    self.config["dataset"]["spatial_size"]
+                ).unsqueeze(0).to(y_hat.device)
+                
+                metric_val_outputs = [
+                    torch.cat(
+                        [tensor[:1], insert_tensor, tensor[1:]]
+                    )
+                    for tensor in metric_val_outputs
+                ]
+
             self.pred_masks += metric_val_outputs
-            loss_dict = self.loss_fn(y_hat, y)
-            loss = loss_dict["loss"]
-            
+
             self.valid_loss += loss
             self.valid_tversky_loss += loss_dict["tversky_loss"]
             self.valid_ce_loss += loss_dict["ce_loss"]
@@ -124,7 +160,9 @@ class Model(pl.LightningModule):
         ce_loss_per_epoch = self.valid_ce_loss / self.num_val_batch
 
         self.log("valid_loss", loss_per_epoch, prog_bar=True, sync_dist=True)
-        self.log("valid_tversky_loss", tversky_loss_per_epoch, prog_bar=False, sync_dist=True)
+        self.log(
+            "valid_tversky_loss", tversky_loss_per_epoch, prog_bar=False, sync_dist=True
+        )
         self.log("valid_ce_loss", ce_loss_per_epoch, prog_bar=False, sync_dist=True)
 
         tomo_size = (7, 184, 630, 630)
@@ -137,21 +175,19 @@ class Model(pl.LightningModule):
         )
 
         gb, metric_per_epoch = self.metric_fn(reconstructed_mask, valid_id)
-        
-        self.log(
-            "val_metric", metric_per_epoch, prog_bar=True, sync_dist=True
-        )
-        
+
+        self.log("val_metric", metric_per_epoch, prog_bar=True, sync_dist=True)
+
         if self.trainer.local_rank == 0:
             epoch = self.trainer.current_epoch
-            iteration = self.trainer.global_step 
+            iteration = self.trainer.global_step
             if isinstance(gb, int):
                 desc = f"epoch: {epoch}, iteration: {iteration}, local lb: {metric_per_epoch}\n{gb}\n\n"
             else:
                 desc = f"epoch: {epoch}, iteration: {iteration}, local lb: {metric_per_epoch}\n{gb.to_string()}\n\n"
-                
-            save_path = os.path.join(self.trainer.log_dir, 'metrics.txt')
-            with open(save_path, 'a') as f:
+
+            save_path = os.path.join(self.trainer.log_dir, "metrics.txt")
+            with open(save_path, "a") as f:
                 f.write(desc)
 
         self.valid_loss = 0
@@ -164,22 +200,20 @@ class Model(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
         return optimizer
-    
+
 
 class CopickDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        copick_config_path: str,
-        config: dict
-    ):
+    def __init__(self, copick_config_path: str, config: dict):
 
         super().__init__()
-        self.train_batch_size = config['dataset']['train_batch_size']
-        self.val_batch_size = config['dataset']['val_batch_size']
-        self.spatial_size = config['dataset']['spatial_size']
-        self.overlap_size = config['dataset']['overlap_size']
-        self.valid_id = config['metric']['valid_id']
-        self.num_random_samples_per_batch = config['dataset']['num_random_samples_per_batch']
+        self.train_batch_size = config["dataset"]["train_batch_size"]
+        self.val_batch_size = config["dataset"]["val_batch_size"]
+        self.spatial_size = config["dataset"]["spatial_size"]
+        self.overlap_size = config["dataset"]["overlap_size"]
+        self.valid_id = config["metric"]["valid_id"]
+        self.num_random_samples_per_batch = config["dataset"][
+            "num_random_samples_per_batch"
+        ]
         self.save_hyperparameters()
 
         self.data_dicts, self.nclasses = self.data_from_copick(copick_config_path)
@@ -188,7 +222,9 @@ class CopickDataModule(pl.LightningDataModule):
             item for item in self.data_dicts if self.valid_id not in item["id"]
         ]
         self.val_files = [
-            item for item in self.data_dicts if item["id"] == self.valid_id + "_denoised"
+            item
+            for item in self.data_dicts
+            if item["id"] == self.valid_id + "_denoised"
         ]
         print(f"Number of training samples: {len(self.train_files)}")
         print(f"Number of validation samples: {len(self.val_files)}")
@@ -323,23 +359,23 @@ class CopickDataModule(pl.LightningDataModule):
 
 
 def main(args: argparse.Namespace):
-    
+
     # output directory
     args.dst_root = settings.model_checkpoint_dir
     args.dst_root.mkdir(parents=True, exist_ok=True)
-    print(f'dst_root: {args.dst_root}')
-    
+    print(f"dst_root: {args.dst_root}")
+
     # config
     config = get_config(args.config, args.valid_id, args.options)
     print(yaml.dump(config))
-    
+
     # tensorboard logging
-    model_name = config['model']['model_name']
-    spatial_size = '_'.join(map(str, config['dataset']['spatial_size']))
+    model_name = config["model"]["model_name"]
+    spatial_size = "_".join(map(str, config["dataset"]["spatial_size"]))
     current_time = datetime.now().strftime("%Y%m%d%H%M%S")
-    valid_id = config['metric']['valid_id']
-    
-    exp_name = f'{model_name}_{spatial_size}_{current_time}'
+    valid_id = config["metric"]["valid_id"]
+
+    exp_name = f"{model_name}_{spatial_size}_{current_time}"
     save_dir = args.dst_root / exp_name
     tb_logger = TensorBoardLogger(save_dir, name=valid_id)
 
@@ -353,39 +389,36 @@ def main(args: argparse.Namespace):
 
     # learning rate callback
     lr_monitor = LearningRateMonitor(logging_interval="epoch")
-    
+
     # initilize model
     model = Model(config)
 
     # initilize data module
     copick_config_path = str(settings.train_data_working_dir / "copick.config")
-    datamodule = CopickDataModule(
-        copick_config_path, 
-        config
-    )
+    datamodule = CopickDataModule(copick_config_path, config)
 
     # Trainer for distributed training with DDP
     trainer = Trainer(
         logger=tb_logger,
         callbacks=[checkpoint_callback, lr_monitor],
-        **config['trainer']
+        **config["trainer"],
     )
 
     trainer.fit(model, datamodule=datamodule)
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str)
-    parser.add_argument('--valid_id', type=str, default=None)
-    parser.add_argument('--options', type=str, nargs="*", default=list())
+    parser.add_argument("--config", type=str)
+    parser.add_argument("--valid_id", type=str, default=None)
+    parser.add_argument("--options", type=str, nargs="*", default=list())
     args = parser.parse_args()
 
-    print(f'config: {args.config}')
+    print(f"config: {args.config}")
 
     return args
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = parse_args()
     main(args)

@@ -19,6 +19,7 @@ def create_model(model_name, **parameters):
 
     if model_name in class_mapping:
         model = class_mapping[model_name](**parameters)
+        model.out_channels = parameters["out_channels"]
     else:
         raise ValueError(f"Unknown model name: {model_name}")
     

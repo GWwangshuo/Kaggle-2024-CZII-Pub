@@ -1,11 +1,9 @@
-from typing import Optional
-
 import timm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.modules.decoder import MyUnetDecoder3d  # noqa
+from models.modules.decoder import MyUnetDecoder3d
 
 
 def encode_for_resnet(e, x, B, depth_scaling=[2, 2, 2, 2, 1]):
@@ -56,64 +54,46 @@ def encode_for_resnet(e, x, B, depth_scaling=[2, 2, 2, 2, 1]):
 
 
 class UNet2E3D(nn.Module):
+
     def __init__(
         self,
+        pretrained: bool = False,
+        arch: str = "resnet18d",
+        decoder_dim: list = [256, 128, 64, 32, 16],
         in_channels: int = 3,
-        out_channels: int = 7,
-        pretrained: bool = True
+        out_channels: int = 6,
     ):
         super(UNet2E3D, self).__init__()
-        self.output_type = [
-            "infer",
-            "loss",
-        ]
+
         self.register_buffer("D", torch.tensor(0))
 
-        arch = "resnet18d"
-        encoder_dim = {
-            "resnet18": [
-                64,
-                64,
-                128,
-                256,
-                512,
-            ],
-            "resnet18d": [
-                64,
-                64,
-                128,
-                256,
-                512,
-            ],
-        }.get(arch, [768])
+        self.out_channels = out_channels
 
-        decoder_dim = [80, 80, 64, 32, 16]
+        self.arch = arch
+        encoder_dim = {
+            "resnet18": [64, 64, 128, 256, 512],
+            "resnet18d": [64, 64, 128, 256, 512],
+        }.get(self.arch, [768])
 
         self.encoder = timm.create_model(
-            model_name=arch,
+            model_name=self.arch,
             pretrained=pretrained,
             in_chans=in_channels,
             num_classes=0,
             global_pool="",
             features_only=True,
         )
-
         self.decoder = MyUnetDecoder3d(
             in_channel=encoder_dim[-1],
             skip_channel=encoder_dim[:-1][::-1] + [0],
             out_channel=decoder_dim,
         )
-        self.mask = nn.Conv3d(decoder_dim[-1], out_channels, kernel_size=1)
+        self.mask = nn.Conv3d(decoder_dim[-1], self.out_channels, kernel_size=1)
 
-    def forward(
-        self,
-        images: torch.Tensor,
-    ) -> dict:
-        images = images.squeeze(1)
-        B, D, H, W = images.shape
-
-        x = images.reshape(B * D, 1, H, W)
-        x = x.expand(-1, 3, -1, -1)
+    def forward(self, image):
+        B, C, D, H, W = image.shape
+        image = image.permute(0, 2, 1, 3, 4).reshape(-1, C, H, W)
+        x = image.expand(-1, 3, -1, -1)
 
         encode = encode_for_resnet(self.encoder, x, B, depth_scaling=[2, 2, 2, 2, 1])
 
@@ -123,6 +103,5 @@ class UNet2E3D(nn.Module):
             depth_scaling=[1, 2, 2, 2, 2],
         )
 
-        logits = self.mask(last)
-
-        return logits
+        logit = self.mask(last)
+        return logit

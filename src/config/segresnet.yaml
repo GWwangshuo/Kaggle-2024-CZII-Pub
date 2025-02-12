@@ -16,14 +16,12 @@ dataset:
   spatial_size: [128, 256, 256]
   overlap_size: [32, 32, 32]
 model:
-  model_name: monai_unet
+  model_name: segresnet
   spatial_dims: 3
   in_channels: 1
   out_channels: 6
-  channels: [48, 64, 80, 80]
-  strides: [2, 2, 1]
-  num_res_units: 1
-  dropout: 0.0
+  upsample_mode: deconv
+  dropout_prob: 0.1
 loss:
   alpha: 0.3
   beta: 0.7

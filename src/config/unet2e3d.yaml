@@ -13,23 +13,21 @@ dataset:
   train_batch_size: 1
   val_batch_size: 2
   num_random_samples_per_batch: 2
-  spatial_size: [128, 384, 384]
+  spatial_size: [128, 256, 256]
   overlap_size: [32, 32, 32]
 model:
-  model_name: monai_unet
-  spatial_dims: 3
-  in_channels: 1
-  out_channels: 7
-  channels: [48, 64, 80, 80]
-  strides: [2, 2, 1]
-  num_res_units: 2
-  dropout: 0.3
+  model_name: unet2e3d
+  arch: resnet18d
+  in_channels: 3
+  out_channels: 6
+  pretrained: True
+  decoder_dim: [80, 80, 64, 32, 16]
 loss:
   alpha: 0.3
   beta: 0.7
   tversky_coef: 1.0
   ce_coef: 1.0
-  weight: [1.0, 1.0, 0.0, 2.0, 1.0, 2.0, 1.0]
+  weight: [1.0, 1.0, 2.0, 1.0, 2.0, 1.0]
   ignore_index: 2
 optimizer:
   name: AdamW
