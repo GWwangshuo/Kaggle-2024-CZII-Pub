@@ -16,7 +16,7 @@ This document outlines the primary entry points of the project, detailing their 
   - `TRAIN_DATA_WORKING_DIR` (as specified in `SETTINGS.json`)
 - **Outputs**:
   - `MODEL_CHECKPOINT_DIR` (as specified in `SETTINGS.json`)
-- **Detailed Instructions**: Refer to the "Model Training" subsection in the "Usage" section of the README.md.
+- **Detailed Instructions**: Refer to the "Model Training" subsection in the "Usage" section of the [README.md](./README.md).
 
 ## 3. Model Prediction
 - **Description**: This script loads a pre-trained model and generates predictions on new data samples.
@@ -25,4 +25,4 @@ This document outlines the primary entry points of the project, detailing their 
   - `MODEL_CHECKPOINT_DIR` (as specified in `SETTINGS.json`)
 - **Outputs**:
   - `submission.csv`
-- **Detailed Instructions**: Refer to the "Model Prediction" subsection in the "Usage" section of the README.md.
+- **Detailed Instructions**: Refer to the "Model Prediction" subsection in the "Usage" section of the [README.md](./README.md).
