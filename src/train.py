@@ -140,7 +140,7 @@ class Model(pl.LightningModule):
                 
                 metric_val_outputs = [
                     torch.cat(
-                        [tensor[:1], insert_tensor, tensor[1:]]
+                        [tensor[:2], insert_tensor, tensor[2:]]
                     )
                     for tensor in metric_val_outputs
                 ]

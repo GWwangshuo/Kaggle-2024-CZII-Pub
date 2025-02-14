@@ -251,7 +251,7 @@ class CustomLoss(nn.Module):
         beta=0.6,
         tversky_coef=1.0,
         ce_coef=1.0,
-        ignore_index=2,
+        ignore_index=None,
         weight=None,
     ):
         super().__init__()
@@ -269,8 +269,8 @@ class CustomLoss(nn.Module):
             softmax=True,
         )
 
-        self.ce_loss = CELoss(weight=self.weight, ignore_index=ignore_index)
-
+        self.ce_loss = CELoss(weight=self.weight, ignore_index=-100 if ignore_index is None else ignore_index)
+        
     def forward(self, preds, targets):
         loss_dict = {}
         loss = 0.0
