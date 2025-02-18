@@ -2,7 +2,7 @@ seed: 2024
 trainer:
   devices: [0]
   strategy: ddp
-  max_epochs: 200
+  max_epochs: 250
   precision: 16-mixed
   accelerator: gpu
   num_nodes: 1
@@ -28,7 +28,6 @@ loss:
   tversky_coef: 1.0
   ce_coef: 1.0
   weight: [1.0, 1.0, 2.0, 1.0, 2.0, 1.0]
-  ignore_index: 2
 optimizer:
   name: AdamW
   lr: 0.001
